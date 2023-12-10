@@ -219,11 +219,13 @@ screen_update_hourglass()
   }
 } 
 
+//display siren
 int size = 30;
 void f1(){
 	int startX = (screenWidth- size) / 2;
 	int startY = (screenHeight - size) /2;
 	
+
 	if(switches & SW2){
 	   for(int i=size-1; i >= 0; i--){
 		for(int j =0; j <= i; ++j){
