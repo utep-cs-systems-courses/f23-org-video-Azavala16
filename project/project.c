@@ -50,49 +50,51 @@ switch_interrupt_handler()
 
 
 short drawPos[2] = {1, 12}, controlPos[2] = {2, 12};
-short colVelocity = 4, colLimits[2] = {1, screenWidth};
+short colVelocity = 7, colLimits[2] = {1, screenWidth};
 
 void
 draw_ball(int col, int row, unsigned short color)
 {
-  if (switches & SW2){ //when switch 2 pressed
-  
-	row=col; //diagonal direction
+  if (switches & SW2){
+	row=col;
 	col=row;
-  	fillRectangle((row-1)/2, (col-1)/2, 5, 5, color); //creates ball 
-  }else
-  	fillRectangle(col-1, row-1, 5, 5, color); 
+  	fillRectangle((row-1)/2, (col-1)/2, 5, 5, color); //when SW2 pressed diagonal direction 
+  	fillRectangle((screenHeight-row-1)/2-5, (screenWidth-col-1)/2, 5, 5, color); //ball2
+  } 
+  else{	
+	fillRectangle(col-1, row-1, 6, 6, color); //creates ball horizontal
+	fillRectangle(screenWidth-col-1, screenHeight-5-row-1, 6, 6, color); //horizontal inverted
+ 	int verticalDist = screenHeight - col - 1;
+ 	fillRectangle(row-10, verticalDist, 7, 7, color); //creates 2nd ball vertical
+ 	fillRectangle(screenWidth+5 -row-1, verticalDist, 7, 7, color);//2nd inverted
+  } 
 }
 
-unsigned int warningColor;//multiple colors
+unsigned int warningColor; //purple
 
 void
 screen_update_ball()
 {
   for (char axis = 0; axis < 2; axis ++) 
-    if (drawPos[axis] != controlPos[axis]) 
+    if (drawPos[axis] != controlPos[axis]) /* position changed? */
       goto redraw;
-  return;			
+  return;			/* nothing to do */
  redraw:
-  draw_ball(drawPos[0], drawPos[1], COLOR_BLUE); 
-  draw_ball(drawPos[1], drawPos[0], COLOR_BLUE); 
+  draw_ball(drawPos[0], drawPos[1], COLOR_BLUE); /* erase */
   for (char axis = 0; axis < 2; axis ++) 
     drawPos[axis] = controlPos[axis];
-    draw_ball(drawPos[0], drawPos[1], warningColor); 
-    draw_ball(drawPos[1], drawPos[0], warningColor); 
+    draw_ball(drawPos[0], drawPos[1], warningColor); /* draw */
 }
   
-
 short redrawScreen = 1;
 u_int controlFontColor = COLOR_GREEN;
-
 
 void wdt_c_handler()
 {
   static int secCount = 0;
   int increaseStepGap = screenWidth/3;
   secCount ++;
-  if (secCount >= 20) {	 
+  if (secCount >= 20) {
    
     {				// move ball 
       short oldCol = controlPos[0];
@@ -104,8 +106,8 @@ void wdt_c_handler()
 	
     }
 
-    {				// update hourglass //
-      if (switches & SW2){	
+    {	// update hourglass //
+      if (switches & SW2){
 	      blue = (red + 200);
 	      red =  (blue + 200);
 	      //displays middle light for siren
@@ -121,28 +123,24 @@ void wdt_c_handler()
     if (switches & SW4) return;
     redrawScreen = 1;
   }
-
-//dont put modules inside the WDT_handler here
+  
+  
+  //don't place modules inside the WDT_handler above
   if (switches & SW2){
-      start_module11();
+	start_module11();
   }
-  else{ 
-      buttonSound();
-      //start_module2();//bugs here
+  else{
+	buttonSound();
+      	  //start_module2();//bugs here
   }
   if(switches & SW1){
-      start_module2();
+      	start_module2();
   }
+  
 }
+
 
 void update_shape();
-
-//dispay messages
-void printMessage(){	
-   drawString5x7(40, 3, "LOADING..  ", warningColor, COLOR_BLUE); 
-   drawString5x7(40, screenHeight-10, "WARNING!!", warningColor, COLOR_BLUE); 
-}
-
 
 void main()
 {
@@ -162,9 +160,14 @@ void main()
       redrawScreen = 0;
       update_shape();
     }
-    printMessage();
     or_sr(0x10);	/**< CPU OFF */
   }
+}
+
+//display normal messages
+void printMessage(){	
+   drawString5x7(40, 3, "CAUTION!!", warningColor, COLOR_BLUE); 
+   drawString5x7(40, screenHeight-10, "WARNING!!", warningColor, COLOR_BLUE); 
 }
 
 void
@@ -184,39 +187,43 @@ screen_update_hourglass()
       int width = 1+ endCol - startCol;
      
 
-     int centerX = screenWidth /2; 
-     int centerY = screenHeight /2;
+      int centerX = screenWidth /2; 
+      int centerY = screenHeight /2;
 	
-     int white =15;
-     // a color in this BGR encoding is BBBB BGGG GGGR RRRR
-     unsigned int color1 = (red << 11) | (green << 5) | blue; //purple
-     unsigned int color2 = (green << 11) | (red << 5) | blue; //yellow
-     unsigned int color3 = (green << 11) | (blue << 5) | red; //green
-     warningColor = (white << 11) | (red << 5) | blue;        //purple/cyon/white
+      int white =15;
+      // a color in this BGR encoding is BBBB BGGG GGGR RRRR
+      unsigned int color1 = (red << 11) | (green << 5) | blue; //purple
+      unsigned int color2 = (green << 11) | (red << 5) | blue; //yellow
+      unsigned int color3 = (green << 11) | (blue << 5) | red; //green
+      warningColor = (white << 11) | (red << 5) | blue;        //purple/cyon/white
     
-     if(!(switches & SW3)){ 
-     	//flipped  sideways
-     	fillRectangle(centerX - lastStep, centerY - width/2, 1, width, color1);
-      	fillRectangle(centerX + lastStep, centerY - width/2, 1, width, color1);
+      if(switches & SW2){ 
+        //flipped hr glass with animation 
+      	 fillRectangle(centerX - lastStep, centerY - width/2, 1, width, color1);
+      	 fillRectangle(centerX + lastStep, centerY - width/2, 1, width, color1);
 
       	//normal hr glass
-      	fillRectangle(startCol, row+lastStep, width, 1, color2);
-      	fillRectangle(startCol, row-lastStep, width, 1, COLOR_BLUE);
+      	 fillRectangle(startCol, row+lastStep, width, 1, color2);
+      	 fillRectangle(startCol, row-lastStep, width, 1, COLOR_BLUE);
       
-      	drawString5x7(40, 3, "EMERGENCY!!", warningColor, COLOR_BLUE); 
-     }
+       	 drawString5x7(40, 3, "EMERGENCY!!", warningColor, COLOR_BLUE); 
+   	 drawString5x7(40, screenHeight-10, "ALERT!!", warningColor, COLOR_BLUE); 
+      }
+      else{ //display flipped hr glass and normal msg if not pressed
+	 printMessage();
+      	 fillRectangle(centerX - lastStep, centerY - width/2, 1, width, color1);
+      	 fillRectangle(centerX + lastStep, centerY - width/2, 1, width, color1);
+      }
  
     }  
   }
 } 
 
 int size = 30;
-
 void f1(){
 	int startX = (screenWidth- size) / 2;
 	int startY = (screenHeight - size) /2;
 	
-	//draws siren 
 	if(switches & SW2){
 	   for(int i=size-1; i >= 0; i--){
 		for(int j =0; j <= i; ++j){
@@ -233,12 +240,12 @@ void f1(){
     
 void
 update_shape()
-{
+{ 
   screen_update_ball();
   screen_update_hourglass();
   f1();
 }
-
+   
 void
 __interrupt_vec(PORT2_VECTOR) Port_2(){
   if (P2IFG & SWITCHES) {	      /* did a button cause this interrupt? */
