@@ -154,14 +154,18 @@ void main()
   buzzer_init();
   enableWDTInterrupts();      /**< enable periodic interrupt */
   or_sr(0x8);	              /**< GIE (enable interrupts) */
-  
+ 
+  P1DIR |= LEDS;
+
   clearScreen(COLOR_BLUE);
   while (1) {			/* forever */
     if (redrawScreen) {
       redrawScreen = 0;
       update_shape();
     }
+    P1OUT &= ~LEDS;
     or_sr(0x10);	/**< CPU OFF */
+    P1OUT |= LEDS;
   }
 }
 
