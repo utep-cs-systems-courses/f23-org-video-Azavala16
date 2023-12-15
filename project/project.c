@@ -130,8 +130,9 @@ void wdt_c_handler()
 	start_module11();
   }
   else{
-	buttonSound();
-      	  //start_module2();//bugs here
+	if(switches & SW3) buzzer_set_period(0);
+	else buttonSound();
+      	//start_module2();//bugs here
   }
   if(switches & SW1){
       	start_module2();
@@ -170,6 +171,8 @@ void printMessage(){
    drawString5x7(40, screenHeight-10, "WARNING!!", warningColor, COLOR_BLUE); 
 }
 
+
+int switchGlass =0;
 void
 screen_update_hourglass()
 {
@@ -187,58 +190,49 @@ screen_update_hourglass()
       int width = 1+ endCol - startCol;
      
 
-      int centerX = screenWidth /2; 
-      int centerY = screenHeight /2;
+     int centerX = screenWidth /2; 
+     int centerY = screenHeight /2;
 	
-      int white =15;
-      // a color in this BGR encoding is BBBB BGGG GGGR RRRR
-      unsigned int color1 = (red << 11) | (green << 5) | blue; //purple
-      unsigned int color2 = (green << 11) | (red << 5) | blue; //yellow
-      unsigned int color3 = (green << 11) | (blue << 5) | red; //green
-      warningColor = (white << 11) | (red << 5) | blue;        //purple/cyon/white
-    
-      if(switches & SW2){ 
-        //flipped hr glass with animation 
-      	 fillRectangle(centerX - lastStep, centerY - width/2, 1, width, color1);
-      	 fillRectangle(centerX + lastStep, centerY - width/2, 1, width, color1);
+     int white =15;
+     // a color in this BGR encoding is BBBB BGGG GGGR RRRR
+     unsigned int color1 = (red << 11) | (green << 5) | blue; //purple
+     unsigned int color2 = (green << 11) | (red << 5) | blue; //yellow
+     unsigned int color3 = (green << 11) | (blue << 5) | red; //green
+     warningColor = (white << 11) | (red << 5) | blue;        //purple/cyon/white
+     
+
+     if(switches & SW2){ 
+     	//flipped 
+      	fillRectangle(centerX - lastStep, centerY - width/2, 1, width, color1);
+      	fillRectangle(centerX + lastStep, centerY - width/2, 1, width, color1);
 
       	//normal hr glass
-      	 fillRectangle(startCol, row+lastStep, width, 1, color2);
-      	 fillRectangle(startCol, row-lastStep, width, 1, COLOR_BLUE);
+      	fillRectangle(startCol, row+lastStep, width, 1, color2);
+      	fillRectangle(startCol, row-lastStep, width, 1, COLOR_BLUE);
       
-       	 drawString5x7(40, 3, "EMERGENCY!!", warningColor, COLOR_BLUE); 
-   	 drawString5x7(40, screenHeight-10, "ALERT!!", warningColor, COLOR_BLUE); 
-      }
-      else{ //display flipped hr glass and normal msg if not pressed
-	 printMessage();
-      	 fillRectangle(centerX - lastStep, centerY - width/2, 1, width, color1);
-      	 fillRectangle(centerX + lastStep, centerY - width/2, 1, width, color1);
-      }
- 
+      	drawString5x7(40, 3, "EMERGENCY!!", warningColor, COLOR_BLUE); 
+   	drawString5x7(40, screenHeight-10, "ALERT!!", warningColor, COLOR_BLUE); 
+     }
+     else{ //display flipped and normal hr glass along with caution msg if not pressed
+	printMessage();
+	if(switchGlass % 2 == 0){ //prints one hrglass 1sec then the other the next sec 
+	
+      		fillRectangle(centerX - lastStep, centerY - width/2, 1, width, color1);
+      		fillRectangle(centerX + lastStep, centerY - width/2, 1, width, color1);
+	}else{
+	
+      		fillRectangle(startCol, row+lastStep, width, 1, color2);
+      		fillRectangle(startCol, row-lastStep, width, 1, color2);
+	}
+	switchGlass++;
+      	//fillRectangle(centerX - lastStep, centerY - width/2, 1, width, color1);
+      	//fillRectangle(centerX + lastStep, centerY - width/2, 1, width, color1);
+      	
+	//fillRectangle(startCol, row+lastStep, width, 1, COLOR_YELLOW);
+     } 
     }  
   }
-} 
-
-//display siren
-int size = 30;
-void f1(){
-	int startX = (screenWidth- size) / 2;
-	int startY = (screenHeight - size) /2;
-	
-
-	if(switches & SW2){
-	   for(int i=size-1; i >= 0; i--){
-		for(int j =0; j <= i; ++j){
-      			unsigned int color12 = red; 
-      			unsigned int color2 = blue;
-			//columns and rows are switched in drawpixel funct j is cols i is rows
- 			//drawPixel(startX  + (size /2) - i/2 +j , startY +i, COLOR_WHITE);
- 			drawPixel(startY -i , startX + (size) - i/2 + j, color12);
- 			drawPixel(startY +i , startX + (size) - i/2 + j, color2);
-	 	}
- 	   }
-	}
-}	
+}
     
 void
 update_shape()
