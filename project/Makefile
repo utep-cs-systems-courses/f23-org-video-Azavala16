@@ -11,7 +11,7 @@ AS              = msp430-elf-gcc -mmcu=${CPU} -c
 all:wakedemo.elf
 
 #additional rules for files
-wakedemo.elf: ${COMMON_OBJECTS} wakedemo.o wdt_handler.o ../../io-Azavala16/project/combinedFinalProject/modules.o  ../../io-Azavala16/project/11-buzzer-change-tone/buzzer.o 
+wakedemo.elf: ${COMMON_OBJECTS} project.o wdt_handler.o ../../io-Azavala16/project/combinedFinalProject/modules.o  ../../io-Azavala16/project/11-buzzer-change-tone/buzzer.o 
 	${CC} ${CFLAGS} ${LDFLAGS} -o $@ $^ -lTimer -lLcd 
 
 load: wakedemo.elf
