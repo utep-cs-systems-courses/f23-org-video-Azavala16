@@ -233,7 +233,28 @@ screen_update_hourglass()
     }  
   }
 }
-    
+
+
+int size = 30;
+
+void f1(){
+	int startX = (screenWidth- size) / 2;
+	int startY = (screenHeight - size) /2;
+	
+	if(switches & SW2){
+	   for(int i=size-1; i >= 0; i--){
+		for(int j =0; j <= i; ++j){
+      			unsigned int color12 = red; 
+      			unsigned int color2 = blue;
+			//columns and rows are switched in drawpixel funct j is cols i is rows
+ 			//drawPixel(startX  + (size /2) - i/2 +j , startY +i, COLOR_WHITE);
+ 			drawPixel(startY -i , startX + (size) - i/2 + j, color12);
+ 			drawPixel(startY +i , startX + (size) - i/2 + j, color2);
+	 	}
+ 	   }
+	}
+}	    
+
 void
 update_shape()
 { 
